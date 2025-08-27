@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智能听写练习工具</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.2em;
+            margin-bottom: 10px;
+            font-weight: 300;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1em;
+        }
+
+        .content {
+            padding: 40px;
+        }
+
+        .section {
+            margin-bottom: 30px;
+            padding: 25px;
+            border-radius: 15px;
+            background: #f8f9fa;
+            border-left: 4px solid #4facfe;
+        }
+
+        .section h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.3em;
+            font-weight: 600;
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 500;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: #4facfe;
+            box-shadow: 0 0 0 3px rgba(79, 172, 254, 0.1);
+        }
+
+        textarea {
+            resize: vertical;
+            min-height: 120px;
+            font-family: inherit;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.3);
+        }
+
+        .btn-secondary {
+            background: #6c757d;
+            color: white;
+        }
+
+        .btn-secondary:hover {
+            background: #5a6268;
+            transform: translateY(-2px);
+        }
+
+        .btn-success {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #218838;
+            transform: translateY(-2px);
+        }
+
+        .checkbox-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .checkbox-item input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+
+        .practice-area {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        .hidden-text {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 2px dashed #dee2e6;
+            text-align: center;
+            color: #6c757d;
+            font-style: italic;
+        }
+
+        .result {
+            margin-top: 20px;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 4px solid #28a745;
+        }
+
+        .result.correct {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        .result.incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            border-left-color: #dc3545;
+        }
+
+        .diff {
+            font-family: 'Courier New', monospace;
+            margin-top: 10px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+
+        .diff-correct {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .diff-incorrect {
+            background: #f8d7da;
+            color: #721c24;
+            text-decoration: line-through;
+        }
+
+        .stats {
+            display: flex;
+            gap: 20px;
+            justify-content: center;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .stat-item {
+            text-align: center;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1);
+            min-width: 100px;
+        }
+
+        .stat-number {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #4facfe;
+        }
+
+        .stat-label {
+            color: #6c757d;
+            font-size: 0.9em;
+            margin-top: 5px;
+        }
+
+        .progress-indicator {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            font-weight: 500;
+            color: #495057;
+        }
+
+        .progress-indicator span {
+            color: #4facfe;
+            font-weight: bold;
+        }
+
+        .keyboard-hint {
+            background: #e9ecef;
+            padding: 10px 15px;
+            border-radius: 8px;
+            font-size: 0.9em;
+            color: #6c757d;
+            text-align: center;
+            margin-top: 15px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        .voice-status {
+            background: #fff3cd;
+            color: #856404;
+            padding: 10px 15px;
+            border-radius: 8px;
+            margin-top: 10px;
+            font-size: 0.9em;
+            border-left: 4px solid #ffc107;
+        }
+
+        .voice-status.success {
+            background: #d4edda;
+            color: #155724;
+            border-left-color: #28a745;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 15px;
+            }
+            
+            .content {
+                padding: 20px;
+            }
+            
+            .controls {
+                justify-content: center;
+            }
+            
+            .stats {
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎧 智能听写练习工具</h1>
+            <p>支持英文和芬兰语的高质量语音听写训练</p>
+        </div>
+        
+        <div class="content">
+            <div class="section">
+                <h2>📝 设置听写内容</h2>
+                <div class="input-group">
+                    <label for="dictationText">输入要听写的内容（每行一句话或词组）：</label>
+                    <textarea id="dictationText" placeholder="请输入您想要练习听写的内容，每行一句话或词组：&#10;Hello, how are you today?&#10;I'm fine, thank you.&#10;What's your name?&#10;&#10;或者单词练习：&#10;beautiful&#10;environment&#10;communication"></textarea>
+                    <small style="color: #666; font-size: 0.9em; margin-top: 5px; display: block;">
+                        💡 按 <kbd>Tab</kbd> 键可以快速增加新行
+                    </small>
+                </div>
+                
+                <div class="input-group">
+                    <label for="language">选择语言：</label>
+                    <select id="language">
+                        <option value="en-US">English (美式英语)</option>
+                        <option value="en-GB">English (英式英语)</option>
+                        <option value="fi-FI">Suomi (芬兰语)</option>
+                    </select>
+                </div>
+                
+                <div class="input-group">
+                    <label>语音设置：</label>
+                    <div class="controls">
+                        <label for="speed">语速：</label>
+                        <input type="range" id="speed" min="0.5" max="2" step="0.1" value="0.9" style="width: 150px;">
+                        <span id="speedValue">0.9x</span>
+                        
+                        <label for="pitch" style="margin-left: 20px;">音调：</label>
+                        <input type="range" id="pitch" min="0.5" max="2" step="0.1" value="1" style="width: 150px;">
+                        <span id="pitchValue">1.0x</span>
+                    </div>
+                </div>
+                
+                <div id="voiceStatus" class="voice-status"></div>
+                
+                <div class="controls">
+                    <button id="testPlay" class="btn-secondary">🔊 测试播放</button>
+                    <button id="startPractice" class="btn-primary">🚀 开始听写练习</button>
+                </div>
+            </div>
+
+            <div id="practiceSection" class="section" style="display: none;">
+                <h2>🎯 听写练习</h2>
+                
+                <div class="practice-area">
+                    <div class="progress-indicator">
+                        <span id="currentProgress">第 1 句</span> / <span id="totalProgress">共 1 句</span>
+                    </div>
+                    
+                    <div class="hidden-text" id="hiddenText">
+                        点击"播放音频"开始听写练习
+                    </div>
+                    
+                    <div class="controls">
+                        <button id="playAudio" class="btn-primary">▶️ 播放当前句</button>
+                        <button id="stopAudio" class="btn-secondary" style="display: none;">⏹️ 停止播放</button>
+                        <button id="prevLine" class="btn-secondary">⬅️ 上一句</button>
+                        <button id="nextLine" class="btn-secondary">➡️ 下一句</button>
+                    </div>
+                    
+                    <div class="input-group" style="margin-top: 20px;">
+                        <label for="userInput">请输入您听到的内容：</label>
+                        <input type="text" id="userInput" placeholder="输入当前句的内容，然后按回车检查...">
+                    </div>
+                    
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ignoreCase" checked>
+                            <label for="ignoreCase">忽略大小写</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="ignorePunctuation" checked>
+                            <label for="ignorePunctuation">忽略标点符号（保留撇号）</label>
+                        </div>
+                    </div>
+                    
+                    <div class="controls" style="margin-top: 20px;">
+                        <button id="checkAnswer" class="btn-success">✅ 检查答案</button>
+                        <button id="showAnswer" class="btn-secondary">👁️ 显示答案</button>
+                        <button id="newPractice" class="btn-primary">🔄 重新开始</button>
+                    </div>
+                    
+                    <div class="keyboard-hint">
+                        💡 提示：按 <kbd>Tab</kbd> 键重复播放音频，按 <kbd>Enter</kbd> 键检查答案，按 <kbd>←</kbd><kbd>→</kbd> 键切换句子
+                    </div>
+                    
+                    <div id="result"></div>
+                </div>
+                
+                <div class="stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="correctCount">0</div>
+                        <div class="stat-label">正确次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="totalCount">0</div>
+                        <div class="stat-label">总尝试次数</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="accuracyRate">0%</div>
+                        <div class="stat-label">准确率</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class DictationApp {
+            constructor() {
+                this.correctCount = 0;
+                this.totalCount = 0;
+                this.isPlaying = false;
+                this.currentUtterance = null;
+                this.bestVoices = null;
+                this.textLines = [];
+                this.currentLineIndex = 0;
+                
+                this.initializeElements();
+                this.bindEvents();
+                this.updateStats();
+                this.initializeVoices();
+            }
+            
+            initializeElements() {
+                this.dictationText = document.getElementById('dictationText');
+                this.language = document.getElementById('language');
+                this.speed = document.getElementById('speed');
+                this.pitch = document.getElementById('pitch');
+                this.speedValue = document.getElementById('speedValue');
+                this.pitchValue = document.getElementById('pitchValue');
+                this.testPlay = document.getElementById('testPlay');
+                this.startPractice = document.getElementById('startPractice');
+                this.practiceSection = document.getElementById('practiceSection');
+                this.hiddenText = document.getElementById('hiddenText');
+                this.playAudio = document.getElementById('playAudio');
+                this.stopAudio = document.getElementById('stopAudio');
+                this.prevLine = document.getElementById('prevLine');
+                this.nextLine = document.getElementById('nextLine');
+                this.userInput = document.getElementById('userInput');
+                this.ignoreCase = document.getElementById('ignoreCase');
+                this.ignorePunctuation = document.getElementById('ignorePunctuation');
+                this.checkAnswer = document.getElementById('checkAnswer');
+                this.showAnswer = document.getElementById('showAnswer');
+                this.newPractice = document.getElementById('newPractice');
+                this.result = document.getElementById('result');
+                this.correctCountEl = document.getElementById('correctCount');
+                this.totalCountEl = document.getElementById('totalCount');
+                this.accuracyRateEl = document.getElementById('accuracyRate');
+                this.voiceStatus = document.getElementById('voiceStatus');
+                this.currentProgress = document.getElementById('currentProgress');
+                this.totalProgress = document.getElementById('totalProgress');
+            }
+
+            async initializeVoices() {
+                this.voiceStatus.textContent = '🔍 正在检测最佳语音...';
+                
+                await this.waitForVoices();
+                this.analyzeBestVoices();
+                this.updateVoiceStatus();
+            }
+
+            waitForVoices() {
+                return new Promise((resolve) => {
+                    const voices = speechSynthesis.getVoices();
+                    if (voices.length > 0) {
+                        resolve();
+                        return;
+                    }
+
+                    const voicesChanged = () => {
+                        speechSynthesis.removeEventListener('voiceschanged', voicesChanged);
+                        resolve();
+                    };
+
+                    speechSynthesis.addEventListener('voiceschanged', voicesChanged);
+                    
+                    // 备用超时机制
+                    setTimeout(resolve, 2000);
+                });
+            }
+
+            analyzeBestVoices() {
+                const voices = speechSynthesis.getVoices();
+                this.bestVoices = {};
+
+                const languages = ['en-US', 'en-GB', 'fi-FI'];
+                
+                languages.forEach(lang => {
+                    const langCode = lang.split('-')[0];
+                    
+                    // 优先级排序：Neural > Premium > Enhanced > Online > Local
+                    const priorities = [
+                        v => v.name.toLowerCase().includes('neural'),
+                        v => v.name.toLowerCase().includes('premium'),  
+                        v => v.name.toLowerCase().includes('enhanced'),
+                        v => v.name.toLowerCase().includes('online'),
+                        v => !v.localService, // 云端语音
+                        v => v.lang === lang,
+                        v => v.lang.startsWith(langCode)
+                    ];
+
+                    let bestVoice = null;
+                    let maxScore = -1;
+
+                    voices.forEach(voice => {
+                        if (!voice.lang.startsWith(langCode)) return;
+                        
+                        let score = 0;
+                        priorities.forEach((check, index) => {
+                            if (check(voice)) {
+                                score += (priorities.length - index) * 10;
+                            }
+                        });
+
+                        // 特别偏好某些高质量声音
+                        const highQualityNames = [
+                            'zira', 'david', 'mark', 'hazel', 'susan', 'george',
+                            'aria', 'guy', 'jenny', 'neural', 'wavenet'
+                        ];
+                        
+                        if (highQualityNames.some(name => 
+                            voice.name.toLowerCase().includes(name))) {
+                            score += 50;
+                        }
+
+                        if (score > maxScore) {
+                            maxScore = score;
+                            bestVoice = voice;
+                        }
+                    });
+
+                    this.bestVoices[lang] = bestVoice;
+                });
+            }
+
+            updateVoiceStatus() {
+                const currentLang = this.language.value;
+                const bestVoice = this.bestVoices[currentLang];
+                
+                if (bestVoice) {
+                    const isHighQuality = bestVoice.name.toLowerCase().includes('neural') ||
+                                         bestVoice.name.toLowerCase().includes('premium') ||
+                                         !bestVoice.localService;
+                    
+                    this.voiceStatus.className = isHighQuality ? 'voice-status success' : 'voice-status';
+                    this.voiceStatus.innerHTML = `
+                        🎤 语音引擎：${bestVoice.name} ${isHighQuality ? '(高质量)' : '(标准质量)'}<br>
+                        💡 ${isHighQuality ? '已选择最佳AI语音，音质接近真人' : '建议更新浏览器或安装语音包以获得更好效果'}
+                    `;
+                } else {
+                    this.voiceStatus.className = 'voice-status';
+                    this.voiceStatus.textContent = '⚠️ 未找到优质语音，将使用系统默认语音';
+                }
+            }
+            
+            bindEvents() {
+                this.speed.addEventListener('input', (e) => {
+                    this.speedValue.textContent = e.target.value + 'x';
+                });
+                
+                this.pitch.addEventListener('input', (e) => {
+                    this.pitchValue.textContent = e.target.value + 'x';
+                });
+
+                this.language.addEventListener('change', () => {
+                    this.updateVoiceStatus();
+                });
+
+                // 处理文本输入区域的Tab键
+                this.dictationText.addEventListener('keydown', (e) => {
+                    if (e.key === 'Tab' && !e.shiftKey) {
+                        e.preventDefault();
+                        this.addLineToTextarea();
+                    }
+                });
+                
+                this.testPlay.addEventListener('click', () => this.testPlayText());
+                this.startPractice.addEventListener('click', () => this.startPracticeMode());
+                this.playAudio.addEventListener('click', () => this.playCurrentLine());
+                this.stopAudio.addEventListener('click', () => this.stopCurrentAudio());
+                this.prevLine.addEventListener('click', () => this.goToPreviousLine());
+                this.nextLine.addEventListener('click', () => this.goToNextLine());
+                this.checkAnswer.addEventListener('click', () => this.checkUserAnswer());
+                this.showAnswer.addEventListener('click', () => this.showCorrectAnswer());
+                this.newPractice.addEventListener('click', () => this.startNewPractice());
+                
+                // 键盘事件
+                document.addEventListener('keydown', (e) => {
+                    if (this.practiceSection.style.display !== 'none') {
+                        if (e.key === 'Tab' && !e.shiftKey) {
+                            e.preventDefault();
+                            this.playCurrentLine();
+                        } else if (e.key === 'Enter' && e.target === this.userInput) {
+                            e.preventDefault();
+                            this.checkUserAnswer();
+                        } else if (e.key === 'ArrowLeft') {
+                            e.preventDefault();
+                            this.goToPreviousLine();
+                        } else if (e.key === 'ArrowRight') {
+                            e.preventDefault();
+                            this.goToNextLine();
+                        }
+                    }
+                });
+            }
+            
+            async speak(text, language, rate = 1, pitch = 1) {
+                return new Promise((resolve, reject) => {
+                    if (this.currentUtterance) {
+                        speechSynthesis.cancel();
+                    }
+                    
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.lang = language;
+                    utterance.rate = rate;
+                    utterance.pitch = pitch;
+                    
+                    // 使用我们分析出的最佳声音
+                    const bestVoice = this.bestVoices[language];
+                    if (bestVoice) {
+                        utterance.voice = bestVoice;
+                    }
+                    
+                    utterance.onstart = () => {
+                        this.isPlaying = true;
+                        this.currentUtterance = utterance;
+                    };
+                    
+                    utterance.onend = () => {
+                        this.isPlaying = false;
+                        this.currentUtterance = null;
+                        resolve();
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        this.isPlaying = false;
+                        this.currentUtterance = null;
+                        console.error('语音播放错误:', e);
+                        reject(new Error(`语音播放失败: ${e.error || 'Unknown error'}`));
+                    };
+                    
+                    try {
+                        speechSynthesis.speak(utterance);
+                    } catch (error) {
+                        this.isPlaying = false;
+                        this.currentUtterance = null;
+                        reject(error);
+                    }
+                });
+            }
+            
+            async testPlayText() {
+                const text = this.dictationText.value.trim();
+                if (!text) {
+                    alert('请先输入要朗读的文本');
+                    return;
+                }
+                
+                this.testPlay.innerHTML = '<span class="loading"></span> 正在播放...';
+                this.testPlay.disabled = true;
+                
+                try {
+                    // 只读第一行作为测试
+                    const firstLine = text.split('\n')[0].trim();
+                    await this.speak(
+                        firstLine, 
+                        this.language.value,
+                        parseFloat(this.speed.value),
+                        parseFloat(this.pitch.value)
+                    );
+                } catch (error) {
+                    console.error('播放失败:', error);
+                    alert('播放失败：' + error.message);
+                } finally {
+                    this.testPlay.innerHTML = '🔊 测试播放';
+                    this.testPlay.disabled = false;
+                }
+            }
+            
+            addLineToTextarea() {
+                const textarea = this.dictationText;
+                const cursorPos = textarea.selectionStart;
+                const textBefore = textarea.value.substring(0, cursorPos);
+                const textAfter = textarea.value.substring(cursorPos);
+                
+                textarea.value = textBefore + '\n' + textAfter;
+                textarea.selectionStart = textarea.selectionEnd = cursorPos + 1;
+                textarea.focus();
+            }
+
+            parseTextLines() {
+                const text = this.dictationText.value.trim();
+                if (!text) return [];
+                
+                return text.split('\n')
+                    .map(line => line.trim())
+                    .filter(line => line.length > 0);
+            }
+            
+            startPracticeMode() {
+                const lines = this.parseTextLines();
+                if (lines.length === 0) {
+                    alert('请先输入要听写的内容（每行一句话或词组）');
+                    return;
+                }
+                
+                this.textLines = lines;
+                this.currentLineIndex = 0;
+                this.practiceSection.style.display = 'block';
+                this.updateProgressDisplay();
+                this.updateCurrentLineDisplay();
+                this.userInput.value = '';
+                this.result.innerHTML = '';
+                this.userInput.focus();
+                
+                // 滚动到练习区域
+                this.practiceSection.scrollIntoView({ behavior: 'smooth' });
+            }
+
+            updateProgressDisplay() {
+                this.currentProgress.textContent = `第 ${this.currentLineIndex + 1} 句`;
+                this.totalProgress.textContent = `共 ${this.textLines.length} 句`;
+                
+                // 更新按钮状态
+                this.prevLine.disabled = this.currentLineIndex === 0;
+                this.nextLine.disabled = this.currentLineIndex === this.textLines.length - 1;
+            }
+
+            updateCurrentLineDisplay() {
+                this.hiddenText.textContent = '当前句子内容已隐藏，请点击播放开始听写';
+            }
+
+            async playCurrentLine() {
+                if (this.isPlaying || this.textLines.length === 0) {
+                    return;
+                }
+                
+                const currentText = this.textLines[this.currentLineIndex];
+                
+                this.playAudio.innerHTML = '<span class="loading"></span> 播放中...';
+                this.playAudio.disabled = true;
+                this.stopAudio.style.display = 'inline-flex';
+                
+                try {
+                    await this.speak(
+                        currentText,
+                        this.language.value,
+                        parseFloat(this.speed.value),
+                        parseFloat(this.pitch.value)
+                    );
+                } catch (error) {
+                    console.error('播放失败:', error);
+                    alert('播放失败：' + error.message);
+                } finally {
+                    this.playAudio.innerHTML = '▶️ 播放当前句';
+                    this.playAudio.disabled = false;
+                    this.stopAudio.style.display = 'none';
+                }
+            }
+
+            goToPreviousLine() {
+                if (this.currentLineIndex > 0) {
+                    this.currentLineIndex--;
+                    this.updateProgressDisplay();
+                    this.updateCurrentLineDisplay();
+                    this.userInput.value = '';
+                    this.result.innerHTML = '';
+                    this.userInput.focus();
+                }
+            }
+
+            goToNextLine() {
+                if (this.currentLineIndex < this.textLines.length - 1) {
+                    this.currentLineIndex++;
+                    this.updateProgressDisplay();
+                    this.updateCurrentLineDisplay();
+                    this.userInput.value = '';
+                    this.result.innerHTML = '';
+                    this.userInput.focus();
+                }
+            }
+
+            normalizeText(text) {
+                let normalized = text;
+                
+                if (this.ignoreCase.checked) {
+                    normalized = normalized.toLowerCase();
+                }
+                
+                if (this.ignorePunctuation.checked) {
+                    // 移除所有标点符号，但保留撇号
+                    normalized = normalized.replace(/[^\w\s']/g, '');
+                }
+                
+                // 标准化空白字符
+                normalized = normalized.replace(/\s+/g, ' ').trim();
+                
+                return normalized;
+            }
+
+            checkUserAnswer() {
+                const userText = this.userInput.value.trim();
+                if (!userText) {
+                    alert('请输入您听写的内容');
+                    return;
+                }
+                
+                const currentText = this.textLines[this.currentLineIndex];
+                const originalText = this.normalizeText(currentText);
+                const userNormalizedText = this.normalizeText(userText);
+                
+                this.totalCount++;
+                
+                const isCorrect = originalText === userNormalizedText;
+                if (isCorrect) {
+                    this.correctCount++;
+                }
+                
+                this.showResult(isCorrect, originalText, userNormalizedText, currentText, userText);
+                this.updateStats();
+                
+                // 如果正确且不是最后一句，自动跳转到下一句
+                if (isCorrect && this.currentLineIndex < this.textLines.length - 1) {
+                    setTimeout(() => {
+                        this.goToNextLine();
+                    }, 2000); // 2秒后自动跳转
+                }
+            }
+
+            showResult(isCorrect, originalText, userText, originalFullText, userFullText) {
+                const resultClass = isCorrect ? 'correct' : 'incorrect';
+                const resultIcon = isCorrect ? '✅' : '❌';
+                const resultMessage = isCorrect ? '完全正确！' : '有所差异';
+                
+                let html = `
+                    <div class="result ${resultClass}">
+                        <h3>${resultIcon} ${resultMessage}</h3>
+                `;
+                
+                if (!isCorrect) {
+                    html += `
+                        <div style="margin-top: 15px;">
+                            <strong>原句：</strong><br>
+                            <div class="diff diff-correct">${this.escapeHtml(originalFullText)}</div>
+                        </div>
+                        <div style="margin-top: 10px;">
+                            <strong>您的输入：</strong><br>
+                            <div class="diff diff-incorrect">${this.escapeHtml(userFullText)}</div>
+                        </div>
+                    `;
+                    
+                    // 显示标准化后的对比
+                    html += `
+                        <div style="margin-top: 15px; padding: 10px; background: #f8f9fa; border-radius: 8px;">
+                            <strong>标准化后对比：</strong><br>
+                            <div style="margin-top: 5px;">原文：<code>${this.escapeHtml(originalText)}</code></div>
+                            <div style="margin-top: 5px;">您的：<code>${this.escapeHtml(userText)}</code></div>
+                        </div>
+                    `;
+                    
+                    // 显示详细差异
+                    const differences = this.getDetailedDifferences(originalText, userText);
+                    if (differences.length > 0) {
+                        html += `
+                            <div style="margin-top: 15px;">
+                                <strong>详细差异分析：</strong>
+                                <ul style="margin-top: 10px; padding-left: 20px;">
+                                    ${differences.map(diff => `<li>${diff}</li>`).join('')}
+                                </ul>
+                            </div>
+                        `;
+                    }
+                } else {
+                    if (this.currentLineIndex < this.textLines.length - 1) {
+                        html += `<p style="margin-top: 10px; color: #28a745;">2秒后自动切换到下一句...</p>`;
+                    } else {
+                        html += `<p style="margin-top: 10px; color: #28a745;">🎉 恭喜！您已完成所有听写练习！</p>`;
+                    }
+                }
+                
+                html += '</div>';
+                this.result.innerHTML = html;
+            }
+
+            showCorrectAnswer() {
+                const currentText = this.textLines[this.currentLineIndex];
+                this.hiddenText.innerHTML = `
+                    <strong>当前句子：</strong><br>
+                    <div style="margin-top: 10px; font-style: normal; color: #333; font-size: 1.1em;">
+                        ${this.escapeHtml(currentText)}
+                    </div>
+                `;
+            }
+            
+            startNewPractice() {
+                this.practiceSection.style.display = 'none';
+                this.dictationText.focus();
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            }
+            
+            stopCurrentAudio() {
+                if (this.currentUtterance) {
+                    speechSynthesis.cancel();
+                    this.isPlaying = false;
+                    this.currentUtterance = null;
+                    this.playAudio.innerHTML = '▶️ 播放当前句';
+                    this.playAudio.disabled = false;
+                    this.stopAudio.style.display = 'none';
+                }
+            }
+            
+            getDetailedDifferences(original, user) {
+                const differences = [];
+                const originalWords = original.split(' ');
+                const userWords = user.split(' ');
+                
+                if (originalWords.length !== userWords.length) {
+                    differences.push(`词数不匹配：原文 ${originalWords.length} 个词，您输入了 ${userWords.length} 个词`);
+                }
+                
+                const maxLength = Math.max(originalWords.length, userWords.length);
+                for (let i = 0; i < maxLength; i++) {
+                    const originalWord = originalWords[i] || '';
+                    const userWord = userWords[i] || '';
+                    
+                    if (originalWord !== userWord) {
+                        if (!originalWord) {
+                            differences.push(`多输入了词语："${userWord}"`);
+                        } else if (!userWord) {
+                            differences.push(`遗漏了词语："${originalWord}"`);
+                        } else {
+                            differences.push(`"${userWord}" 应为 "${originalWord}"`);
+                        }
+                    }
+                }
+                
+                return differences;
+            }
+            
+            updateStats() {
+                this.correctCountEl.textContent = this.correctCount;
+                this.totalCountEl.textContent = this.totalCount;
+                
+                const accuracy = this.totalCount > 0 ? 
+                    Math.round((this.correctCount / this.totalCount) * 100) : 0;
+                this.accuracyRateEl.textContent = accuracy + '%';
+            }
+            
+            escapeHtml(text) {
+                const div = document.createElement('div');
+                div.textContent = text;
+                return div.innerHTML;
+            }
+        }
+        
+        // 初始化应用
+        document.addEventListener('DOMContentLoaded', () => {
+            new DictationApp();
+        });
+    </script>
+</body>
+</html>
